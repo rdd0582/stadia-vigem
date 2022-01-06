@@ -1,3 +1,7 @@
+/*
+ * utils.c -- Misc utility routines.
+ */
+
 #include <ctype.h>
 
 #include "utils.h"

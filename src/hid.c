@@ -1,3 +1,7 @@
+/*
+ * hid.c -- Routines for interacting with HID devices.
+ */
+
 #include "hid.h"
 
 #include "utils.h"
@@ -392,7 +396,7 @@ INT hid_send_output_report(struct hid_device *device, const void *data, size_t l
         device->write_pending = FALSE;
         return bytes_written;
     }
-    
+
     device->write_pending = FALSE;
     return -1;
 }
