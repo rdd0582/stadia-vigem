@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param (
     [Parameter()][ValidateSet("DEBUG", "RELEASE")][string]$Configuration = "DEBUG",
-    [Parameter()][ValidateSet("x86", "x64")][string]$Architecture = "x86"
+    [Parameter()][ValidateSet("x86", "x64")][string]$Architecture = "x86",
+    [Parameter()][bool]$SkipBuildToolsSetup = $false
 )
 
 $script:CommonFlags = @("/Zi", "/W4", "/EHsc", "/DWIN32", "/D_UNICODE", "/DUNICODE")
@@ -11,6 +12,19 @@ $script:ReleaseFlags = @("/GL", "/O2")
 $script:OutputName = "stadia-vigem-"
 
 function Import-Prerequisites {
+
+    if ($SkipBuildToolsSetup -eq $true) {
+        return
+    }
+
+    if (Get-Module -ListAvailable -Name VSSetup) {
+        Update-Module -Name VSSetup
+    } else {
+        Install-Module -Name VSSetup -Scope CurrentUser -Force
+    }
+
+    Import-Module -Name VSSetup
+
     if (Get-Module -ListAvailable -Name WintellectPowerShell) {
         Update-Module -Name WintellectPowerShell
     } else {
@@ -24,6 +38,10 @@ function Invoke-BuildTools {
     param (
         $Architecture
     )
+    
+    if ($SkipBuildToolsSetup -eq $true) {
+        return
+    }
 
     $latestVsInstallationInfo = Get-VSSetupInstance -All | Sort-Object -Property InstallationVersion -Descending | Select-Object -First 1
     
