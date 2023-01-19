@@ -9,8 +9,6 @@ $script:CommonFlags = @("/Zi", "/W4", "/EHsc", "/DWIN32", "/D_UNICODE", "/DUNICO
 $script:DebugFlags = @( "/Od" )
 $script:ReleaseFlags = @("/GL", "/O2")
 
-$script:OutputName = "stadia-vigem-"
-
 function Import-Prerequisites {
 
     if ($SkipBuildToolsSetup -eq $true) {
@@ -48,12 +46,12 @@ function Invoke-BuildTools {
     Invoke-CmdScript "$($latestVsInstallationInfo.InstallationPath)\VC\Auxiliary\Build\vcvarsall.bat" $Architecture
 }
 
-function Invoke-Build {
+function Invoke-Build-libstadia {
     param (
         $Architecture
     )
 
-    $OutputName = "$script:OutputName$Architecture.exe"
+    $OutputName = "libstadia-$Architecture.lib"
     $Flags = If ($Configuration -eq "DEBUG") {$script:DebugFlags} else {$script:ReleaseFlags}
 
     $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
@@ -63,8 +61,56 @@ function Invoke-Build {
 
     $StopWatch.Start()
 
-    & "rc.exe" /foobj/stadia-vigem.res res/res.rc
-    & "cl.exe" $Flags $CommonFlags /IViGEmClient/include /Foobj/ /Febin/$OutputName ViGEmClient/src/*.cpp obj/stadia-vigem.res src/*.c
+    & "cl.exe" /c $Flags $CommonFlags /Ilibstadia/include /Foobj/libstadia/ libstadia/src/*.c
+    & "lib.exe" /out:bin/$OutputName obj/libstadia/*.obj 
+
+    $StopWatch.Stop()
+
+    Write-Host
+    Write-Host "*** ${OutputName}: Build finished in $($StopWatch.Elapsed) ***"
+}
+
+function Invoke-Build-Stadia-Tester {
+    param (
+        $Architecture
+    )
+
+    $OutputName = "stadia-tester-$Architecture.exe"
+    $Flags = If ($Configuration -eq "DEBUG") {$script:DebugFlags} else {$script:ReleaseFlags}
+
+    $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
+
+    Write-Host "*** ${OutputName}: Build started ***"
+    Write-Host
+
+    $StopWatch.Start()
+
+    & "cl.exe" $Flags $CommonFlags /Ilibstadia/include /Foobj/stadia-tester/ /Febin/$OutputName stadia-tester/src/*.c User32.lib
+
+    $StopWatch.Stop()
+
+    Write-Host
+    Write-Host "*** ${OutputName}: Build finished in $($StopWatch.Elapsed) ***"
+}
+
+function Invoke-Build-Stadia-ViGEm {
+    param (
+        $Architecture
+    )
+
+    $OutputName = "stadia-vigem-$Architecture.exe"
+    $Flags = If ($Configuration -eq "DEBUG") {$script:DebugFlags} else {$script:ReleaseFlags}
+    $LibraryPath = "bin/libstadia-$Architecture.lib"
+
+    $StopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
+
+    Write-Host "*** ${OutputName}: Build started ***"
+    Write-Host
+
+    $StopWatch.Start()
+
+    & "rc.exe" /foobj/stadia-vigem/stadia-vigem.res stadia-vigem/res/res.rc
+    & "cl.exe" $Flags $CommonFlags /Ilibstadia/include /IViGEmClient/include /Istadia-vigem/include /Foobj/stadia-vigem/ /Febin/$OutputName ViGEmClient/src/*.cpp obj/stadia-vigem/stadia-vigem.res stadia-vigem/src/*.c $LibraryPath
 
     $StopWatch.Stop()
 
@@ -76,6 +122,9 @@ function Invoke-Build {
 
 New-Item -Path "bin" -ItemType Directory -Force > $null
 New-Item -Path "obj" -ItemType Directory -Force > $null
+New-Item -Path "obj/libstadia" -ItemType Directory -Force > $null
+New-Item -Path "obj/stadia-tester" -ItemType Directory -Force > $null
+New-Item -Path "obj/stadia-vigem" -ItemType Directory -Force > $null
 
 Import-Prerequisites
 
@@ -83,12 +132,16 @@ Write-Host "-- Build started. Configuration: $Configuration, Architecture: $Arch
 
 if ($Architecture -eq "x86" -Or $Architecture -eq "ALL") {
     Invoke-BuildTools -Architecture "x86"
-    Invoke-Build -Architecture "x86"
+    Invoke-Build-libstadia -Architecture "x86"
+    Invoke-Build-Stadia-Tester -Architecture "x86"
+    Invoke-Build-Stadia-ViGEm -Architecture "x86"
 }
 
 if ($Architecture -eq "x64" -Or $Architecture -eq "ALL") {
     Invoke-BuildTools -Architecture "x64"
-    Invoke-Build -Architecture "x64"
+    Invoke-Build-libstadia -Architecture "x64"
+    #Invoke-Build-Stadia-Tester -Architecture "x64"
+    Invoke-Build-Stadia-ViGEm -Architecture "x64"
 }
 
 Write-Host "-- Build completed. --"

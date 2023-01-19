@@ -212,7 +212,7 @@ static BOOL remove_device(struct stadia_controller *controller)
 
 static void refresh_devices()
 {
-    LPTSTR stadia_hw_path_filters[3] = {STADIA_HW_FILTER, NULL};
+    LPTSTR stadia_hw_path_filters[3] = {STADIA_USB_HW_FILTER, STADIA_BLT_HW_FILTER, NULL};
     struct hid_device_info *device_info = hid_enumerate(stadia_hw_path_filters);
     struct hid_device_info *cur;
     BOOL found = FALSE;

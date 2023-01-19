@@ -22,25 +22,6 @@
 
 static const BYTE init_vibration[5] = {STADIA_VIBRATION_IDENTIFIER, 0x00, 0x00, 0x00, 0x00};
 
-struct stadia_controller
-{
-    struct hid_device *device;
-
-    SRWLOCK state_lock;
-    struct stadia_state state;
-
-    BOOL active;
-    HANDLE stopping_event;
-    HANDLE output_event;
-
-    SRWLOCK vibration_lock;
-    BYTE small_motor;
-    BYTE big_motor;
-
-    HANDLE input_thread;
-    HANDLE output_thread;
-};
-
 static const DWORD dpad_map[8] =
     {
         STADIA_BUTTON_UP,
@@ -144,10 +125,12 @@ static DWORD WINAPI _stadia_output_thread(LPVOID lparam)
 
 struct stadia_controller *stadia_controller_create(struct hid_device *device)
 {
-    if (hid_send_output_report(device, init_vibration, sizeof(init_vibration), STADIA_READ_TIMEOUT) <= 0)
+    if (!hid_send_output_report(device, init_vibration, sizeof(init_vibration), STADIA_READ_TIMEOUT) <= 0)
     {
         last_error = STADIA_ERROR_VIBRATION_INIT_FAILURE;
-        return NULL;
+        // Don't error out for now.
+        // TODO: Fix vibration for bluetooth controllers.
+        //return NULL;
     }
 
     SECURITY_ATTRIBUTES security = {.nLength = sizeof(SECURITY_ATTRIBUTES),

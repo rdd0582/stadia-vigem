@@ -10,10 +10,13 @@
 #define STADIA_ERROR_VIBRATION_INIT_FAILURE 0x1
 #define STADIA_ERROR_THREAD_CREATE_FAILURE 0x2
 
-#define STADIA_HW_VENDOR_ID 0x18D1
-#define STADIA_HW_PRODUCT_ID 0x9400
+#define STADIA_USB_HW_VENDOR_ID 0x18D1
+#define STADIA_USB_HW_PRODUCT_ID 0x9400
+#define STADIA_USB_HW_FILTER TEXT("VID_18D1&PID_9400")
 
-#define STADIA_HW_FILTER TEXT("VID_18D1&PID_9400")
+#define STADIA_BLT_HW_VENDOR_ID 0x18D1
+#define STADIA_BLT_HW_PRODUCT_ID 0x9400
+#define STADIA_BLT_HW_FILTER TEXT("vid&0218d1_pid&9400")
 
 #define STADIA_BUTTON_NONE 0x00000000
 #define STADIA_BUTTON_A 0x00000001
@@ -32,9 +35,6 @@
 #define STADIA_BUTTON_MENU 0x00002000
 #define STADIA_BUTTON_STADIA_BTN 0x00004000
 
-void (*stadia_update_callback)(struct stadia_controller *, struct stadia_state *);
-void (*stadia_destroy_callback)(struct stadia_controller *);
-
 struct stadia_state
 {
     DWORD buttons;
@@ -49,7 +49,27 @@ struct stadia_state
     BYTE right_trigger;
 };
 
-struct stadia_controller;
+struct stadia_controller
+{
+    struct hid_device *device;
+
+    SRWLOCK state_lock;
+    struct stadia_state state;
+
+    BOOL active;
+    HANDLE stopping_event;
+    HANDLE output_event;
+
+    SRWLOCK vibration_lock;
+    BYTE small_motor;
+    BYTE big_motor;
+
+    HANDLE input_thread;
+    HANDLE output_thread;
+};
+
+void (*stadia_update_callback)(struct stadia_controller *, struct stadia_state *);
+void (*stadia_destroy_callback)(struct stadia_controller *);
 
 struct stadia_controller *stadia_controller_create(struct hid_device *device);
 void stadia_controller_set_vibration(struct stadia_controller *controller, BYTE small_motor, BYTE big_motor);
