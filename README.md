@@ -1,10 +1,10 @@
 # Stadia-ViGEm
 
-Xbox 360 controller emulation for Stadia controller. Supports multiple devices and vibration. Forked from Mi-ViGEm (https://github.com/grayver/Mi-ViGEm) by grayver.
-Xbox 360 emulation driver is provided by ViGEm (https://github.com/ViGEm/ViGEmBus), by Benjamin Höglinger.
+Xbox 360 controller emulation for Stadia controller. Supports controllers connected via USB & bluetooth. Supports multiple devices and vibration (wired only). Forked from Mi-ViGEm (https://github.com/grayver/Mi-ViGEm) by grayver.
+Xbox 360 controller emulation driver is provided by ViGEm (https://github.com/ViGEm/ViGEmBus), by Benjamin Höglinger.
 
 ## Requirements
-- Windows 10 (should work on Windows 7 and 8 also)
+- Windows 11 (should work on Windows 7-10 also)
 - ViGEm bus installed (can be downloaded [here](https://github.com/ViGEm/ViGEmBus/releases))
 
 ## How it works
@@ -18,7 +18,7 @@ Stadia-ViGEm creates a virtual Xbox 360 controller which results in double input
    - Click "+" button
    - Browse to the Stadia-ViGEm executable you normally use (Stadia-ViGEm-x86.exe or Stadia-ViGEm-x64.exe)
  - On Devices tab:
-   - Tick box next to the Stadia controller entry (my controller is named as "Google LLC Stadia Controller rev. A")
+   - Tick box next to the Stadia controller entry (wired controllers are named "Google LLC Stadia Controller rev. A" & bluetooth controllers are named "HID-compliant game controller")
    - Tick "Enable device hiding" at the bottom of the window
  - Reboot your PC
 
