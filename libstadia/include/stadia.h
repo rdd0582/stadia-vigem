@@ -53,6 +53,8 @@ struct stadia_controller
 {
     struct hid_device *device;
 
+    BOOL bluetooth;
+
     SRWLOCK state_lock;
     struct stadia_state state;
 
