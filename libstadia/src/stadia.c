@@ -106,6 +106,10 @@ static DWORD WINAPI _stadia_output_thread(LPVOID lparam)
     while (controller->active)
     {
         DWORD wait_result = WaitForMultipleObjects(2, wait_events, FALSE, INFINITE);
+        if (wait_result == WAIT_OBJECT_0 + 1)
+        {
+            break;
+        }
 
         AcquireSRWLockShared(&controller->vibration_lock);
 
@@ -214,10 +218,8 @@ void stadia_controller_destroy(struct stadia_controller *controller)
     controller->active = FALSE;
     SetEvent(controller->stopping_event);
 
-    INT thread_count = 0;
     HANDLE threads[2];
-
-    WaitForMultipleObjects(2, threads, TRUE, INFINITE);
+    INT thread_count = 0;
 
     if (controller->input_thread != NULL)
     {
@@ -227,6 +229,11 @@ void stadia_controller_destroy(struct stadia_controller *controller)
     if (controller->output_thread != NULL)
     {
         threads[thread_count++] = controller->output_thread;
+    }
+
+    if (thread_count > 0)
+    {
+        WaitForMultipleObjects(thread_count, threads, TRUE, INFINITE);
     }
 
     CloseHandle(controller->stopping_event);

@@ -37,6 +37,19 @@ static BOOL vigem_connected = FALSE;
 
 static struct tray_menu tray_menu_device_count;
 
+static void attach_parent_console()
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        FILE *fp;
+        fp = freopen("CONOUT$", "w", stdout);
+        fp = freopen("CONOUT$", "w", stderr);
+        fp = freopen("CONIN$", "r", stdin);
+        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stderr, NULL, _IONBF, 0);
+    }
+}
+
 // future declarations
 static void stadia_controller_update_cb(struct stadia_controller *controller, struct stadia_state *state);
 static void stadia_controller_stop_cb(struct stadia_controller *controller);
@@ -360,6 +373,7 @@ static void quit_cb(struct tray_menu *item)
 
 INT main()
 {
+    attach_parent_console();
     rebuild_tray_menu();
     if (tray_init(&tray) < 0)
     {
